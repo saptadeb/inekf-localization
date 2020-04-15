@@ -1,0 +1,500 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out if you need a4paper
+
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4 paper
+
+\IEEEoverridecommandlockouts                              % This command is only needed if 
+                                                          % you want to use the \thanks command
+
+\overrideIEEEmargins                                      % Needed to meet printer requirements.
+
+%In case you encounter the following error:
+%Error 1010 The PDF file may be corrupt (unable to open PDF file) OR
+%Error 1000 An error occurred while parsing a contents stream. Unable to analyze the PDF file.
+%This is a known problem with pdfLaTeX conversion filter. The file cannot be opened with acrobat reader
+%Please use one of the alternatives below to circumvent this error by uncommenting one or the other
+%\pdfobjcompresslevel=0
+%\pdfminorversion=4
+
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+% The following packages can be found on http:\\www.ctan.org
+%\usepackage{graphics} % for pdf, bitmapped graphics files
+%\usepackage{epsfig} % for postscript graphics files
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+\usepackage{amsmath} % assumes amsmath package installed
+\usepackage{amssymb}  % assumes amsmath package installed
+\usepackage{amsfonts}
+\usepackage{tensor}
+\usepackage{mathtools}
+
+\let\proof\relax
+\let\endproof\relax
+\usepackage{amsthm}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+
+\title{\LARGE \bf
+Invariant Extended Kalman Filtering for Robot Localization \\
+using IMU and GPS}
+
+\author{Saptadeep Debnath, Anthony Liang, Gaurav Manda, Sunbochen Tang, and Hao Zhou \\
+College of Engineering, University of Michigan, Ann Arbor, MI, USA \\
+\texttt{\{,zhh\}@umich.edu} 
+\thanks{EECS 568 Team 16 Final Project Report}
+}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+
+\end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{INTRODUCTION}
+
+\section{REVIEW OF THEORETICAL BACKGROUND AND PRELIMINARIES}
+
+We assume a matrix Lie group \cite{c1} denoted $\cal{G}$ and its
+associated Lie Algebra denoted $\mathfrak{g}$. Define
+\begin{equation}
+{\cal{L}}_{\mathfrak{g}}: \mathbb{R}^{\mathrm{dim} \mathfrak{g}} \rightarrow \mathfrak{g},
+\end{equation}
+that takes an element in the tangent space of $\cal{G}$ at the identity to its corresponding matrix representation, we can write the exponential map 
+\begin{equation}
+\mathrm{exp}: \mathbb{R}^{\mathrm{dim} \mathfrak{g}} \rightarrow {\cal{G}},
+\end{equation}
+that relates a matrix Lie group to its associated Lie algebra as 
+\begin{equation}
+\mathrm{exp}(\boldsymbol \xi) = \mathrm{exp}_m({\cal{L}}_{\mathfrak{g}}(\boldsymbol \xi)),
+\end{equation}
+where $\mathrm{exp}_m(\cdot)$ is the standard matrix exponential.
+
+A process dynamics evolving on the Lie group is denoted by
+\begin{equation}\label{dynamics}
+\frac{d}{dt} \mathbf{X}_t = f_{\mathbf{u}_t}(\mathbf{X}_t),
+\end{equation}
+where the state $\mathbf{X}_t$ lives in the Lie group $\cal{G}$ and $\mathbf{u}_t$ is an input variable. Consider the true state trajectory $\mathbf{X}_t$ and an estimate of it $\bar{\mathbf{X}}_t$. The state estimation error is defined using right or left multiplication of $\mathbf{X}_t^{-1}$ as follows.
+\begin{definition}[Left and Right Invariant Error]
+\textit{The right- and
+left-invariant errors between two trajectories $\mathbf{X}_t$ and $\bar{\mathbf{X}}_t$ are:
+\begin{eqnarray}
+\label{ri_error}
+{\boldsymbol \eta}^r_t = \bar{\mathbf{X}}_t \mathbf{X}_t^{-1} = (\bar{\mathbf{X}}_t \boldsymbol \Gamma) (\mathbf{X}_t \boldsymbol \Gamma)^{-1} \text{\ \ \ (Right-Invariant)} \\
+\label{li_error}
+{\boldsymbol \eta}^l_t = \mathbf{X}_t^{-1} \bar{\mathbf{X}}_t = ( \boldsymbol \Gamma \bar{\mathbf{X}}_t)^{-1} (\boldsymbol \Gamma \mathbf{X}_t) \text{\ \ \ (Left-Invariant)},
+\end{eqnarray}
+where $\boldsymbol \Gamma \in {\cal{G}}$ is an arbitrary element of the group.
+}
+\end{definition}
+The following two theorems are the fundamental results for deriving an Invariant extended Kalman filter and show that a wide range of nonlinear problems can lead to linear error equations provided the error variable is correctly chosen.
+\begin{theorem} [Autonomous Error Dynamics] \label{th1}
+\textit{A system is
+group affine if the dynamics $f_{\mathbf{u}_t} (\cdot)$ satisfies: for all $t > 0$ and $\mathbf{X}_1, \mathbf{X}_2 \in {\cal{G}}$:
+\begin{equation} \label{group_affine}
+f_{\mathbf{u}_t} (\mathbf{X}_1 \mathbf{X}_2) = f_{\mathbf{u}_t} (\mathbf{X}_1) \mathbf{X}_2 + \mathbf{X}_1 f_{\mathbf{u}_t} (\mathbf{X}_2) - \mathbf{X}_1 f_{\mathbf{u}_t} (\mathbf{I}_d) \mathbf{X}_2,
+\end{equation}
+where $\mathbf{I}_d$ denotes the identity matrix. Furthermore, if this condition is satisfied, the right- and left-invariant error dynamics are trajectory independent and satisfy:
+\begin{eqnarray}
+\frac{d}{dt} {\boldsymbol \eta}^r_t = g_{\mathbf{u}_t}^r({\boldsymbol \eta}^r_t), \text{ where } g_{\mathbf{u}_t}^r({\boldsymbol \eta}) = f_{\mathbf{u}_t}({\boldsymbol \eta}) - {\boldsymbol \eta} f_{\mathbf{u}_t}(\mathbf{I}_d) \\
+\frac{d}{dt} {\boldsymbol \eta}^l_t = g_{\mathbf{u}_t}^l({\boldsymbol \eta}^l_t), \text{ where } g_{\mathbf{u}_t}^l({\boldsymbol \eta}) = f_{\mathbf{u}_t}({\boldsymbol \eta}) - f_{\mathbf{u}_t}(\mathbf{I}_d) {\boldsymbol \eta}.
+\end{eqnarray}
+}
+\end{theorem}
+
+\begin{theorem} [Log-linear Property of the Error] \label{th2}
+\textit{Consider the right- or left-invariant error ${\boldsymbol \eta}^i_t$ as defined by (\ref{ri_error}) and (\ref{li_error}) between two arbitrarily far trajectories of (\ref{dynamics}) and (\ref{group_affine}), the superscript $i$ denoting indifferently $l$ or $r$. Let ${\cal{L}}_\mathfrak{g}$ and $\mathrm{exp}(\cdot)$ be defined as above. Let ${\boldsymbol \xi}_0^i \in \mathbb{R}^{\mathrm{dim} \mathfrak{g}}$ be such that initially 
+\begin{equation}
+\mathrm{exp}(\boldsymbol \xi_0^i) =  {\boldsymbol \eta}^i_0. 
+\end{equation} 
+Let $\mathbf{A}^i_t$ be defined by
+\begin{equation}
+g_{\mathbf{u_t}}^i (\mathrm{exp}(\boldsymbol \xi)) = {\cal{L}}_{\mathfrak{g}} (\mathbf{A}^i_t \boldsymbol \xi) + O(\|\boldsymbol \xi\|^2).
+\end{equation} 
+If ${\boldsymbol \xi}_t^i$ is defined for $t > 0$ by the linear differential equation in $\mathbb{R}^{\mathrm{dim} \mathfrak{g}}$
+\begin{equation} \label{error_dynamic}
+\frac{d}{dt} {\boldsymbol \xi}_t^i = \mathbf{A}^i_t {\boldsymbol \xi}^i_t,
+\end{equation}
+then, we have for the true non-linear error ${\boldsymbol \eta}^i_t$, the correspondence at all times and for arbitrarily large errors
+\begin{equation}
+\forall t \geq 0, {\boldsymbol \eta}^i_t = \mathrm{exp}({\boldsymbol \xi}_t^i).
+\end{equation}
+}
+\end{theorem}
+This theorem states that (\ref{error_dynamic}) is not the typical Jacobian linearization along a trajectory because the left- or right-invariant error on the Lie group can be exactly recovered from its solution. This result is of major importance for the propagation (prediction) step of the InEKF.
+
+The adjoint representation plays a key role in the theory of Lie groups and through this linear map we can capture the non-commutative structure of a Lie group.
+\begin{definition}[The Adjoint Map]
+\textit{Let $\cal{G}$ be a matrix Lie group with Lie algebra $\mathfrak{g}$. For any $\mathbf{X} \in {\cal{G}}$, the adjoint map, \begin{equation}
+Ad_\mathbf{X}: \mathfrak{g} \rightarrow \mathfrak{g},
+\end{equation}
+is a linear map defined as
+\begin{equation}
+Ad_\mathbf{X}({\cal{L}}_\mathfrak{g}(\boldsymbol \xi)) = X {\cal{L}}_\mathfrak{g}(\boldsymbol \xi) X^{-1}.
+\end{equation}
+Furthermore, we denote the matrix representation of the adjoint map by $\mathrm{Ad}_\mathbf{X}$, such that
+\begin{equation}
+Ad_\mathbf{X}({\cal{L}}_\mathfrak{g}(\boldsymbol \xi)) = {\cal{L}}_\mathfrak{g}(\mathrm{Ad}_\mathbf{X} \boldsymbol \xi).
+\end{equation}
+}
+\end{definition}
+
+\section{$SE_2(3)$ CONTINUOUS LEFT-INVARIANT EKF}
+In this section, we derive a Left-Invariant Extended Kalman Filter (LI-EKF) using IMU and GPS measurements. IMU biases are neglected for now to be consistent with the standard InEKF theory. Section ??? provides a method for reintroducing the bias terms.
+
+\subsection{State Representation}
+As with typical aided inertial navigation, we wish to estimate the orientation, velocity, and position of the robot (IMU) in the world frame. These states are represented by $\tensor[]{\mathbf{R}}{_{WB}}(t), \tensor[_W]{\mathbf{v}}{_{WB}}(t)$, and $\tensor[_W]{\mathbf{p}}{_{WB}} (t)$ respectively. The above collection of state variables forms the group of double direct spatial isometrie $SE_2(3)$. Specifically, $\mathbf{X}_t \in SE_2(3)$ can be represented by the following matrix:
+\begin{equation}
+\mathbf{X}_t \triangleq \left[ \begin{array}{ccc}
+\tensor[]{\mathbf{R}}{_{WB}}(t) & \tensor[_W]{\mathbf{v}}{_{WB}}(t) & \tensor[_W]{\mathbf{p}}{_{WB}} (t) \\
+\mathbf{0}_{1 \times 3} & 1 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 1
+\end{array} \right].
+\end{equation}
+We introduce the following shorthand notation:
+\begin{eqnarray}
+\mathbf{X}_t \triangleq \left[ \begin{array}{ccc}
+\mathbf{R}_t & \mathbf{v}_t & \mathbf{p}_t \\
+\mathbf{0}_{1 \times 3} & 1 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 1
+\end{array} \right], \\
+\mathbf{u}_t \triangleq \left[ \begin{array}{c}
+\tensor[_B]{\tilde{\boldsymbol \omega}}{_{WB}}(t) \\
+\tensor[_B]{\tilde{\mathbf{a}}}{_{WB}}(t)
+\end{array} \right] 
+\triangleq \left[ \begin{array}{c}
+{\boldsymbol \omega}_t \\
+\mathbf{a}_t \\
+\end{array} \right],
+\end{eqnarray}
+where the input $\mathbf{u}_t$ is formed from the angular velocity and linear acceleration measurements coming from the IMU. It is important to note that these measurements are taken in the
+body (or IMU) frame. State $\mathbf{X}_t$ has a total of 9 degrees of freedom (3 for rotation, 3 for velocity, and 3 for position), indicating the dimension of the associated Lie algebra is also 9. The Lie algebra of $SE_2(3)$, denoted by $\mathfrak{se}_2(3)$, is a 5 dimensional square matrix. Defining a map, ${\cal{L}}_\mathfrak{g}: \mathbb{R}^9 \rightarrow \mathfrak{g}$, that maps a vector $\boldsymbol \xi \in \mathbb{R}^9$ to the corresponding element of the Lie algebram, we can write it as:
+\begin{equation}
+{\cal{L}}_\mathfrak{g}(\boldsymbol \xi) = 
+{\cal{L}}_\mathfrak{g} \left( \left[ \begin{array}{c}
+{\boldsymbol \xi}^R \\
+{\boldsymbol \xi}^v \\
+{\boldsymbol \xi}^p
+\end{array} \right] \right) =
+\left[ \begin{array}{ccc}
+\left({\boldsymbol \xi}^R\right)^{\wedge} & {\boldsymbol \xi}^v & {\boldsymbol \xi}^p \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right],
+\end{equation} 
+where $(\cdot)^{\wedge}$ denotes a $3 \times 3$ skew-symmetric matrix.
+
+The exponential mapping is given by the formula:
+\begin{equation}
+\mathrm{exp}(\boldsymbol \xi) = \mathbf{I}_5 + \mathbf{S} + \frac{1-\cos\|\boldsymbol \xi\|}{\|\boldsymbol \xi\|^2}\mathbf{S}^2 + \frac{\|\boldsymbol \xi\|-\sin \|\boldsymbol \xi\|}{\|\boldsymbol \xi\|^3}\mathbf{S}^3,
+\end{equation}
+where $\mathbf{S} = {\cal{L}}_\mathfrak{g}(\boldsymbol \xi)$.
+
+Matrix representation of the adjoint operator is given by:
+\begin{equation}
+\mathrm{Ad}_{\mathbf{X}_t} = \left[ \begin{array}{ccc}
+\mathbf{R}_t & 0 & 0 \\
+\mathbf{v}_t \times \mathbf{R}_t & \mathbf{R}_t & 0 \\
+\mathbf{p}_t \times \mathbf{R}_t & 0 & \mathbf{R}_t
+\end{array} \right].
+\end{equation}
+
+\subsection{Continuous System Dynamics}
+The IMU measurements are modeled as being corrupted by additive white Gaussian noise, per
+\begin{eqnarray}
+\tilde{\boldsymbol \omega}_t = {\boldsymbol \omega}_t + \mathbf{w}^g_t, \mathbf{w}^g_t \sim {\cal{GP}}(\mathbf{0}_{3 \times 1}, \Sigma^g \delta(t-t')) \\
+\tilde{\mathbf{a}}_t = {\mathbf{a}}_t + \mathbf{w}^a_t, \mathbf{w}^a_t \sim {\cal{GP}}(\mathbf{0}_{3 \times 1}, \Sigma^a \delta(t-t')).
+\end{eqnarray}
+The IMU dynamics can be written as:
+\begin{eqnarray}
+\dot{\mathbf{R}}_t & = & \mathbf{R}_t (\tilde{\boldsymbol \omega}_t - \mathbf{w}^g_t)^{\wedge} \\
+\dot{\mathbf{v}}_t & = & \mathbf{R}_t (\tilde{\mathbf{a}}_t - \mathbf{w}_t^a) + \mathbf{g} \\
+\dot{\mathbf{p}}_t & = & \mathbf{v}_t,
+\end{eqnarray}
+where $\mathbf{g}$ is the gravity vector.
+
+In matrix form, the dynamics can be expressed as
+\begin{multline} \label{noisy_system}
+\frac{d}{dt}\mathbf{X}_t = \left[ \begin{array}{ccc}
+\mathbf{R}_t \tilde{\boldsymbol \omega}_t^{\wedge} & \mathbf{R}_t \tilde{\mathbf{a}}_t + \mathbf{g} & \mathbf{v}_t \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right] \\
+- \left[ \begin{array}{ccc}
+\mathbf{R}_t & \mathbf{v}_t & \mathbf{p}_t \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right] 
+\left[ \begin{array}{ccc}
+\left( \mathbf{w}_t^g \right)^{\wedge} & \mathbf{w}_t^a & \mathbf{0}_{3 \times 1} \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right] \\
+\triangleq f_{\mathbf{u}_t}(\mathbf{X}_t) - \mathbf{X}_t {\cal{L}}_{\mathfrak{g}}(\mathbf{w}_t), \hspace{3.2cm}                 
+\end{multline}
+where $\mathbf{w}_t = \left[ \left(\mathbf{w}_t^g\right)^T, \left(\mathbf{w}_t^a\right)^T , \mathbf{0}_{1 \times 3} \right]^T$. The deterministic system dynamics, $f_{\mathbf{u}_t}(\cdot)$, can be shown to satisfy the group affine property (\ref{group_affine}). Therefore, following Theorem \ref{th1}, the left- and right-invariant error dynamics will evolve independently of the system's state. Elementary computations based on the results of Theorem \ref{th1} show that for the noisy model (\ref{noisy_system}) we have
+\begin{multline} \label{noisy_error_G}
+\frac{d}{dt} {\boldsymbol \eta}^l_t = f_{\mathbf{u}_t}({\boldsymbol \eta}^l_t) - f_{\mathbf{u}_t}(\mathbf{I}_d) {\boldsymbol \eta}^l_t + {\cal{L}}_{\mathfrak{g}}(\mathbf{w}_t) {\boldsymbol \eta}^l_t \\
+= g_{\textbf{u}_t}^l({\boldsymbol \eta}^l_t) + {\cal{L}}_{\mathfrak{g}}(\mathbf{w}_t) {\boldsymbol \eta}^l_t, \hspace{3.1cm}
+\end{multline}
+where the second term arises from the additive noise. The
+derivation follows the results in [?????] and is not repeated here.
+
+Theorem \ref{th2} furthermore specifies that the invariant error satisfies a log-linear property. Namely, if $\mathbf{A}_t$ is defined by 
+\begin{equation}
+g_{\mathbf{u_t}}^l (\mathrm{exp}(\boldsymbol \xi)) = {\cal{L}}_{\mathfrak{g}} (\mathbf{A}_t \boldsymbol \xi) + O(\|\boldsymbol \xi\|^2), 
+\end{equation}
+then the log of the invariant error, $\boldsymbol \xi \in \mathbb{R}^{\mathrm{dim} {\mathfrak{g}}}$, satisfies the linear system
+\begin{equation} \label{noisy_error_dimg}
+\frac{d}{dt} {\boldsymbol \xi}_t = \mathbf{A}_t {\boldsymbol \xi}_t +  \mathbf{w}_t.
+\end{equation}
+We provide a quick proof of (\ref{noisy_error_dimg}) below, from (\ref{noisy_error_G}),
+\begin{multline}
+\frac{d}{dt} {\boldsymbol \eta}_t = \frac{d}{dt} \mathrm{exp}({\boldsymbol \xi}_t) \approx \frac{d}{dt} \left(\mathbf{I}_d + {\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_t) \right) = \frac{d}{dt} \left({\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_t) \right) \\
+= g_{\textbf{u}_t}^l \left( \mathrm{exp}({\boldsymbol \xi}_t) \right) + {\cal{L}}_{\mathfrak{g}}(\mathbf{w}_t) \mathrm{exp}({\boldsymbol \xi}_t) \hspace{2.3cm} \\
+\approx {\cal{L}}_{\mathfrak{g}} (\mathbf{A}_t {\boldsymbol \xi}_t) + O(\|{\boldsymbol \xi}_t\|^2) + {\cal{L}}_{\mathfrak{g}}(\mathbf{w}_t) \left(\mathbf{I}_d + {\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_t) \right) \\
+= {\cal{L}}_{\mathfrak{g}} \left(\mathbf{A}_t {\boldsymbol \xi}_t + \mathbf{w}_t \right) + O(\|{\boldsymbol \xi}_t\|^2) + O(\|\mathbf{w}_t \| \|{\boldsymbol \xi}_t\|), \\
+\implies \frac{d}{dt} \left({\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_t) \right) = {\cal{L}}_{\mathfrak{g}} \left(\mathbf{A}_t {\boldsymbol \xi}_t + \mathbf{w}_t \right), \\
+\implies \frac{d}{dt} {\boldsymbol \xi}_t = \mathbf{A}_t {\boldsymbol \xi}_t +  \mathbf{w}_t. \hspace{2.4cm}
+\end{multline}
+To compute the matrix $\mathbf{A}_t$, we linearize the invariant error dynamics, $g_{\mathbf{u}_t}^l(\cdot)$, using the first order approximation
+\begin{equation}
+{\boldsymbol \eta}_t^l = \mathrm{exp}({\boldsymbol \xi}_t) \approx \mathbf{I}_d + {\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_t),
+\end{equation}
+to yield
+\begin{multline}
+g_{\mathbf{u}_t}^l ( {\boldsymbol \eta}_t^l ) = g_{\mathbf{u}_t}^l \left( \mathbf{I}_d + {\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_t) \right) \\
+= f_{\mathbf{u}_t} \left( \mathbf{I}_d + {\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_t) \right) - f_{\mathbf{u}_t}(\mathbf{I}_d) \left( \mathbf{I}_d + {\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_t) \right) \\
+= \left[ \begin{array}{ccc}
+\left( \mathbf{I} + \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \right) \tilde{\boldsymbol \omega}_t^{\wedge} & \left( \mathbf{I} + \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \right) \tilde{\mathbf{a}}_t + \mathbf{g} & {\boldsymbol \xi}_t^v \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right] \\
+- \left[ \begin{array}{ccc}
+\tilde{\boldsymbol \omega}_t^{\wedge} & \tilde{\mathbf{a}}_t + \mathbf{g} & \mathbf{0}_{3,1} \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right] 
+\left[ \begin{array}{ccc}
+\mathbf{I} + \left( {\boldsymbol \xi}_t^R \right)^{\wedge} &  {\boldsymbol \xi}_t^v & {\boldsymbol \xi}_t^p \\
+\mathbf{0}_{1 \times 3} & 1 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 1
+\end{array} \right] \\
+= \left[ \begin{array}{ccc}
+G_{11} & G_{12} & G_{13} \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right], \hspace{4.1cm} \\
+\text{where } \mathbf{I} = \mathbf{I}_{3 \times 3}, \hspace{5.8cm} \\
+G_{11} = \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \tilde{\boldsymbol \omega}_t^{\wedge} - \tilde{\boldsymbol \omega}_t^{\wedge} \left( {\boldsymbol \xi}_t^R \right)^{\wedge} = \left( -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^R \right)^{\wedge}, \\
+G_{12} = \left( \mathbf{I} + \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \right) \tilde{\mathbf{a}}_t + \mathbf{g} -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^v, \hspace{1.4cm} \\
+G_{13} = {\boldsymbol \xi}_t^v - \tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^p. \hspace{4.1cm}
+\end{multline}
+We can further write $g_{\mathbf{u}_t}^l ( \cdot )$ as
+\begin{multline} \label{Axi}
+g_{\mathbf{u}_t}^l ( {\boldsymbol \eta}_t^l ) = 
+\left[ \begin{array}{ccc}
+G_{11} & G_{12} & G_{13} \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right] \\
+= {\cal{L}}_{\mathfrak{g}} \left( \left[ \begin{array}{c}
+-\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^R \\
+\left( \mathbf{I} + \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \right) \tilde{\mathbf{a}}_t + \mathbf{g} -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^v \\
+{\boldsymbol \xi}_t^v - \tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^p
+\end{array} \right] \right) \\
+= {\cal{L}}_{\mathfrak{g}} \left( \left[ \begin{array}{ccc}
+-\tilde{\boldsymbol \omega}_t^{\wedge} & \mathbf{0}_{3 \times 3} & \mathbf{0}_{3 \times 3} \\
+- \tilde{\mathbf{a}}_t^{\wedge} & -\tilde{\boldsymbol \omega}_t^{\wedge} & \mathbf{0}_{3 \times 3} \\
+\mathbf{0}_{3 \times 3} & \mathbf{I}_{3 \times 3} & - \tilde{\boldsymbol \omega}_t^{\wedge}
+\end{array} \right] 
+\left[ \begin{array}{c}
+{\boldsymbol \xi}_t^R \\
+{\boldsymbol \xi}_t^v \\
+{\boldsymbol \xi}_t^p
+\end{array} \right] 
+\right) + c.
+\end{multline}
+With the above, we can express the prediction step of the
+LI-EKF. The state estimate, $\hat{\mathbf{X}}_t$, is propagated though the deterministic system dynamics, while the covariance matrix, $\mathbf{P}_t$, is computed using the Riccati equation, namely,
+\begin{equation}
+\frac{d}{dt} \hat{\mathbf{X}}_t = f_{\mathbf{u}_t} (\hat{\mathbf{X}}_t), \frac{d}{dt} \mathbf{P}_t = \mathbf{A}_t \mathbf{P}_t + \mathbf{P}_t \mathbf{A}_t + \hat{\mathbf{Q}}_t,
+\end{equation}
+where the matrices $\mathbf{A}_t$ and $\hat{\mathbf{Q}}_t$ are obtained from (\ref{Axi}) and (\ref{noisy_error_dimg}),
+\begin{equation}
+\mathbf{A}_t = \left[ \begin{array}{ccc}
+-\tilde{\boldsymbol \omega}_t^{\wedge} & \mathbf{0}_{3 \times 3} & \mathbf{0}_{3 \times 3} \\
+- \tilde{\mathbf{a}}_t^{\wedge} & -\tilde{\boldsymbol \omega}_t^{\wedge} & \mathbf{0}_{3 \times 3} \\
+\mathbf{0}_{3 \times 3} & \mathbf{I}_{3 \times 3} & - \tilde{\boldsymbol \omega}_t^{\wedge}
+\end{array} \right],
+\hat{\mathbf{Q}}_t = \mathrm{Cov}[\mathbf{w}_t].
+\end{equation}
+
+\subsection{Discretization}
+The continuous dynamics can be discretized by assuming a zero-order hold on the inputs and performing Euler integration from $t_{k-1}$ to $t_k$. The discrete dynamics for the individual state elements becomes:
+\begin{eqnarray}
+\hat{\mathbf{R}}_{t_k} & = & \mathbf{R}_{t_{k-1}} \mathrm{exp}(\tilde{\boldsymbol \omega}_t \Delta t) \\
+\hat{\mathbf{v}}_{t_k} & = & \mathbf{v}_{t_{k-1}} + (\mathbf{R}_{t_{k-1}} \tilde{\mathbf{a}}_t + \mathbf{g}) \Delta t \\
+\hat{\mathbf{p}}_{t_k} & = & \mathbf{p}_{t_{k-1}} + \mathbf{v}_{t_{k-1}} \Delta t + \frac{1}{2} (\mathbf{R}_{t_{k-1}} \tilde{\mathbf{a}}_t + \mathbf{g}) \Delta t^2,
+\end{eqnarray}
+where $\Delta t = t_k - t_{k-1}$ and $\mathrm{exp}(\cdot)$ is the exponential map for $SO(3)$. A first-order approximation can be used to simplify integration of the Riccati equation, resulting in the following discrete-time covariance propagation equation,
+\begin{equation}
+\mathbf{P}_k = {\boldsymbol \Phi} \mathbf{P}_{k-1} {\boldsymbol \Phi}^T + \hat{\mathbf{Q}}_{k-1},
+\end{equation}
+where
+\begin{eqnarray}
+{\boldsymbol \Phi} & = & \mathrm{exp}_m(\mathbf{A}_t \Delta t) \\
+\hat{\mathbf{Q}}_{k-1} & \approx & {\boldsymbol \Phi} \hat{\mathbf{Q}}_t {\boldsymbol \Phi}^T \Delta t.
+\end{eqnarray}
+
+\subsection{Left-invariant Measurement Model}
+The GPS measurement model corresponds to the left-invariant observation form: $\mathbf{Y}_{t_k} = \hat{\mathbf{X}}_{t_k} \mathbf{b} + \mathbf{V}_{t_k}$,
+\begin{equation}
+\left[ \begin{array}{c}
+\mathbf{y}_{t_k} \\
+0 \\
+1 \\
+\end{array} \right] =
+\left[ \begin{array}{ccc}
+\hat{\mathbf{R}}_{t_k} & \hat{\mathbf{v}}_{t_k} & \hat{\mathbf{p}}_{t_k} \\
+\mathbf{0}_{1 \times 3} & 1 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 1 \\
+\end{array} \right] 
+\left[ \begin{array}{c}
+\mathbf{0}_{3 \times 1} \\
+0 \\
+1
+\end{array} \right] + 
+\left[ \begin{array}{c}
+\mathbf{v}_{t_k} \\
+0 \\
+0
+\end{array} \right]
+\end{equation}
+Therefore, the innovation depends solely on the invariant error
+and the update equations take the form
+\begin{eqnarray}
+\hat{\mathbf{X}}_{t_k}^+ = \hat{\mathbf{X}}_{t_k} \mathrm{exp} \left( \mathbf{L}_{t_k} \left( \hat{\mathbf{X}}_{t_k}^{-1} \mathbf{Y}_{t_k} - \mathbf{b} \right) \right) \\
+{\boldsymbol \eta}_{t_k}^{l+} = {\boldsymbol \eta}_{t_k}^l \mathrm{exp} \left( \mathbf{L}_{t_k} \left( \left({\boldsymbol \eta}_{t_k}^l \right)^{-1} \mathbf{b} - \mathbf{b} + \hat{\mathbf{X}}_{t_k}^{-1} \mathbf{V}_{t_k} \right) \right)
+\end{eqnarray}
+where $\mathrm{exp}(\cdot)$ is the exponential map corresponding to the state matrix Lie group, $\mathbf{L}_{t_k}$ is a gain matrix to be defined later. Linearizing the left-invariant error ${\boldsymbol \eta}_{t_k}^l$ and neglecting the higher order terms, we get
+\begin{equation}
+{{\boldsymbol \xi}_{t_k}^l}^+ = {\boldsymbol \xi}_{t_k}^l + \mathbf{L}_{t_k}(-{\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}_{t_k}^l) \mathbf{b} + \hat{\mathbf{X}}_{t_k}^{-1} \mathbf{V}_{t_k})
+\end{equation}
+Define the measurement Jacobian, $\mathbf{H}$, such that
+\begin{multline}
+\mathbf{H} {\boldsymbol \xi} = {\cal{L}}_{\mathfrak{g}} ({\boldsymbol \xi}) \mathbf{b} = 
+\left[ \begin{array}{ccc}
+\left({\boldsymbol \xi}^R\right)^{\wedge} & {\boldsymbol \xi}^v & {\boldsymbol \xi}^p \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right]
+\left[ \begin{array}{c}
+\mathbf{0}_{3 \times 1} \\
+0 \\
+1
+\end{array} \right] \\
+= \left[ \begin{array}{c}
+{\boldsymbol \xi}^p \\
+0 \\
+0
+\end{array} \right] =
+\left[ \begin{array}{ccc}
+\mathbf{0}_{3 \times 3} & \mathbf{0}_{3 \times 3} & \mathbf{I}_{3 \times 3} \\
+\mathbf{0}_{1 \times 3} & 0 & 0 \\
+\mathbf{0}_{1 \times 3} & 0 & 0
+\end{array} \right]
+\left[ \begin{array}{c}
+{\boldsymbol \xi}^R \\
+{\boldsymbol \xi}^v \\
+{\boldsymbol \xi}^p
+\end{array} \right],
+\end{multline}
+and in its reduced form,
+\begin{equation}
+\mathbf{H} = \left[ \begin{array}{ccc}
+\mathbf{0}_{3 \times 3} & \mathbf{0}_{3 \times 3} & \mathbf{I}_{3 \times 3}
+\end{array} \right].
+\end{equation}
+We can further write the linearized error as
+\begin{eqnarray}
+{\boldsymbol \xi}_{t_k}^{l+} & = & {\boldsymbol \xi}_{t_k}^l - \mathbf{L}_{t_k} \mathbf{H} {\boldsymbol \xi}_{t_k}^l + \mathbf{L}_{t_k} \hat{\mathbf{X}}_{t_k}^{-1} \mathbf{V}_{t_k} \\
+& = & (\mathbf{I} - \mathbf{L}_{t_k} \mathbf{H}) {\boldsymbol \xi}_{t_k}^l + \mathbf{L}_{t_k} \hat{\mathbf{X}}_{t_k}^{-1} \mathbf{V}_{t_k} 
+\end{eqnarray}
+Finally, we can write down the full state and covariance update equations of the LI-EKF using the derived linear update equation and the theory of Kalman filtering as
+\begin{eqnarray}
+\hat{\mathbf{X}}_{t_k}^+ = \hat{\mathbf{X}}_{t_k} \mathrm{exp} \left( \mathbf{L}_{t_k} \left( \hat{\mathbf{X}}_{t_k}^{-1} \mathbf{Y}_{t_k} - \mathbf{b} \right) \right) \\
+\mathbf{P}_{t_k}^+ = (\mathbf{I} - \mathbf{L}_{t_k} \mathbf{H}) \mathbf{P}_{t_k} (\mathbf{I} - \mathbf{L}_{t_k} \mathbf{H})^T + \mathbf{L}_{t_k} \hat{\mathbf{N}}_{t_k} \mathbf{L}_{t_k}^T,
+\end{eqnarray}
+where
+\begin{eqnarray}
+\hat{\mathbf{N}}_{t_k} = \hat{\mathbf{X}}_{t_k}^{-1} \mathrm{Cov}[\mathbf{V}_{t_k}]\hat{\mathbf{X}}_{t_k}^{-T}, \\
+\mathbf{L}_{t_k} = \mathbf{P}_{t_k} \mathbf{H}^T \mathbf{S}^{-1}, \\
+\mathbf{S} = \mathbf{H} \mathbf{P}_{t_k} \mathbf{H}^T + \hat{\mathbf{N}}_{t_k}.
+\end{eqnarray}
+
+\section{INCLUDING IMU BIASES}
+
+\section{RESULTS}
+
+\section{CONCLUSIONS}
+
+A conclusion section is not required. Although a conclusion may review the main points of the paper, do not replicate the abstract as the conclusion. A conclusion might elaborate on the importance of the work or suggest applications and extensions. 
+
+\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+                                  % on the last page of the document manually. It shortens
+                                  % the textheight of the last page by a suitable amount.
+                                  % This command does not take effect until the next page
+                                  % so it should come on the page before the last. Make
+                                  % sure that you do not shorten the textheight too much.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{APPENDIX}
+
+Appendixes should appear before the acknowledgment.
+
+\section*{ACKNOWLEDGMENT}
+
+The preferred spelling of the word “acknowledgment” in America is without an “e” after the “g”. Avoid the stilted expression, “One of us (R. B. G.) thanks . . .”  Instead, try “R. B. G. thanks”. Put sponsor acknowledgments in the unnumbered footnote on the first page.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+References are important to the reader; therefore, each citation must be complete and correct. If at all possible, references should be commonly available publications.
+
+
+
+\begin{thebibliography}{99}
+
+\bibitem{c1} Brian Hall. \textit{Lie groups, Lie algebras, and representations: an elementary introduction}, volume 222. Springer, 2015.
+\bibitem{c1}: Axel Barrau and SilvËre Bonnabel. \textit{The invariant extended Kalman filter as a stable observer}. IEEE Transactions on Automatic Control, 62(4):1797-1812, 2017.
+
+
+\end{thebibliography}
+
+
+
+
+\end{document}
