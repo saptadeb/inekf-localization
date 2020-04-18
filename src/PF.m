@@ -41,13 +41,25 @@ classdef PF < handle
             end
         end
         
+        function [A] = skew(~, v)
+            % Convert from vector to skew symmetric matrix
+            A = [    0, -v(3),  v(2);
+                  v(3),     0, -v(1);
+                 -v(2),  v(1),    0];
+        end
+        
         function prediction(obj)
             % motion model
             for i = 1:obj.n
-                % sample noise
-                w = obj.LQ * randn(2,1);
-                % propagate the particle!
-                obj.p.x(:,i) = obj.f(obj.p.x(:,i), w);
+                % propagate the particles!
+                [R, v, p] = obj.separate_state(obj.X);
+            
+                % Pose dynamics
+                RPred = R * expm(obj.skew(w * dt));
+                vPred = v + (R * a + obj.g) * dt;
+                pPred = p + v * dt + 0.5 * (R * a + obj.g) * dt^2;
+                
+                obj.p.x(:,i) = obj.f(obj.p.x(:,i));
             end
         end
         
@@ -56,14 +68,13 @@ classdef PF < handle
             % obtained range and bearing measurements
             %
             %   Inputs:
-            %       z          - measurement
+            %       z          - (lat, lon, alt)
             w = zeros(obj.n,1); % importance weights
             for i = 1:obj.n
                  % compute innovation statistics
                  % We know here z(2) is an angle
                  v = z - obj.h(obj.p.x(:,i));
-                 v(2) = wrapToPi(v(2));
-                 w(i) = mvnpdf(v, [0;0], obj.R);
+                 w(i) = mvnpdf(v, [0;0;0], obj.R);
             end
             % update and normalize weights
             obj.p.w = obj.p.w .* w; % since we used motion model to sample
