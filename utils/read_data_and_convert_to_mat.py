@@ -13,6 +13,7 @@ directory = '../data/' + date + '/'
 gpsConsumerGradeFile = 'gps.csv'
 gpsRTKFile = 'gps_rtk.csv'
 imuFile = 'ms25.csv'
+imuEulerFile = 'ms25_euler.csv'
 groundtruthFile = 'groundtruth.csv'
 outputFile = '../data/data_' + date + '.mat'
 
@@ -34,7 +35,12 @@ def main():
         0     | UTIME of the measurements                 | microsecond
         1-3   | 3-DOF magnetic field strength vector      | Gauss
         4-6   | 3-DOF acceleration vector                 | m/s2
-        7-9   | 3-DOF angular rate (roll, pitch, heading) | rad
+        7-9   | 3-DOF angular rate (roll, pitch, heading) | rad/s
+
+    IMU EULER CSV File Format:
+        Field | Description                               | Unit
+        0     | UTIME of the measurements                 | microsecond
+        1-3   | 3-DOF angular rate (roll, pitch, heading) | rad  
 
     GROUNDTRUTH CSV File Format:
         Field | Description                               | Unit
@@ -66,6 +72,12 @@ def main():
     gyroY   = imu[:, 8]
     gyroZ   = imu[:, 9]
 
+    imuEuler = np.loadtxt(directory + imuEulerFile, delimiter = ",")
+    imuEulerTime = imuEuler[:, 0] * 1e-6
+    imuRoll      = imuEuler[:, 1]
+    imuPitch     = imuEuler[:, 2]
+    imuHeading   = imuEuler[:, 3]
+
     gt      = np.loadtxt(directory + groundtruthFile, delimiter = ",")
     # NED (North, East Down)
     gtTime  = gt[:, 0] * 1e-6
@@ -80,6 +92,7 @@ def main():
             'gps_rtk': {'timestamp': gpsRTKTime, 'latitude': latRTK, 'longitude': lngRTK, 'altitude': altRTK},
             'imu': {'timestamp': imuTime, 'accel_x': accelX, 'accel_y': accelY, 'accel_z': accelZ,
                     'gyro_x': gyroX, 'gyro_y': gyroY, 'gyro_z': gyroZ},
+            'imu_euler': {'timestamp': imuEulerTime, 'roll': imuRoll, 'pitch': imuPitch, 'heading': imuHeading},
             'ground_truth': {'timestamp': gtTime, 'x': x, 'y': y, 'z': z,
                              'roll': roll, 'pitch': pitch, 'heading': heading}}
 
