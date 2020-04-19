@@ -15,55 +15,25 @@ data = load('data_2013-01-10.mat');
 % 4         | xdot_k    | velocity x
 % 5         | ydot_k    | velocity y
 % 6         | zdot_k    | velocity z
-% ------------------------------------
 % 7         | phi_k     | roll
 % 8         | theta_k   | pitch
 % 9         | psi_k     | yaw
 % ------------------------------------
-%{
-sys = [];
 
-% convert data to quaternions
-cr = @(e) cos(e.roll * 0.5);
-sr = @(e) sin(e.roll * 0.5);
-cp = @(e) cos(e.pitch * 0.5);
-sp = @(e) sin(e.pitch * 0.5);
-cy = @(e) cos(e.yaw * 0.5);
-sy = @(e) sin(e.yaw * 0.5);
-
-qw = @(e) cr(e) * cp(e) * cy(e) + sr(e) * sp(e) * sy(e);
-qx = @(e) sr(e) * cp(e) * cy(e) - cr(e) * sp(e) * sy(e);
-qy = @(e) cr(e) * sp(e) * cy(e) + sr(e) * cp(e) * sy(e);
-qz = @(e) cr(e) * cp(e) * sy(e) - sr(e) * sp(e) * cy(e);
-
-% quaternion orientation of robot
-sys.q = @(e) quaternion(qw(e), qx(e), qy(e), qz(e));
-
-% convert accelaration to world frame
-sys.accW = @(accB, q) q * accB * q';
-
-% robot motion model
-% Inputs:
-%   x       - state x
-%   accb    - acceleration in body frame
-%   e       - orientation in euler angles
-%   dt      - sample time
-sys.f = @(x, accB, dt) [eye(3) eye(3)*dt; 0*eye(3) eye(3)]*x(1:6) + ...
-    [(dt^2/2)*eye(3); dt*eye(3)] * accB;...sys.accW(accB, sys.q(e));
-
-%}
 % measurement model
-sys.h = @(x) [eye(3), 0*eye(3), 0*eye(3)] * x;
+sys.h = @(x) [0*eye(3), 0*eye(3), eye(3)] * x;
 
 % process noise covariance
-sys.Q = 1e1 * eye(9);
+% sys.Q = 1e-1 * eye(9);
+sys.Q = blkdiag(1e-2*eye(3), 1e-1*eye(3), 1e-1*eye(3));
 
 % measurement noise covariance
-sys.R = 1e1 * eye(3);
+sys.R = 1e2 * eye(3);
 
 % initialization for filter
-init.n = 100;                           % number of particles
-init.Sigma = 1e1 * eye(9);              % initial sigma
+init.n = 40;                           % number of particles
+init.Sigma = 1e3 * eye(9);              % initial sigma
+
 
 %% Initialization
 % Use first GPS measurement as initial position 
@@ -73,13 +43,27 @@ init.Sigma = 1e1 * eye(9);              % initial sigma
 gpsFirstTimestamp = data.gps_cg.timestamp(1);
 imuFirstIndex = find(data.imu.timestamp > gpsFirstTimestamp, 1);
 
-filter = PF(init);
+% Use groundtruth orientation to construct initial rotation matrix
+[~, groundtruthFirstIndex] = min(abs(data.ground_truth.timestamp - gpsFirstTimestamp));
+eulerInitial = [data.ground_truth.roll(groundtruthFirstIndex) ...
+                data.ground_truth.pitch(groundtruthFirstIndex) ...
+                data.ground_truth.heading(groundtruthFirstIndex)];
+% 'XYZ' (roll, pitch, yaw), body-fixed (intrinsic) axis rotation sequence.  
+rotationInitial = eul2rotm(eulerInitial, 'XYZ');
 
+init.X = [eulerInitial'; zeros(3,1); [x;y;z]];
+
+filter = PF(sys, init);
+
+%% Kalman filter
 gpsIndex = 2;
-lastValidAltitude = data.gps_cg.altitude(1);
-filteredData = zeros(length(data.imu.accel_x)-imuFirstIndex, 3);
+% lastValidAltitude = data.gps_cg.altitude(1);
+filteredData = zeros(length(data.gps_cg.timestamp)-1, 13);
+filteredDataStatistics = zeros(length(data.gps_cg.timestamp)-1, 11);
 
 for imuIndex = imuFirstIndex: length(data.imu.accel_x)-1
+    fprintf("%d\rn", imuIndex);
+%     clc;
     acceleration = [data.imu.accel_x(imuIndex);
                     data.imu.accel_y(imuIndex);
                     data.imu.accel_z(imuIndex)];
@@ -92,28 +76,48 @@ for imuIndex = imuFirstIndex: length(data.imu.accel_x)-1
     
     % If there is GPS data coming between two IMU timestamps
     if gpsIndex <= length(data.gps_cg.timestamp) && nextImuTimeStamp > data.gps_cg.timestamp(gpsIndex)
+        gpsTimestamp = data.gps_cg.timestamp(gpsIndex);
+        % Find the index of the closest timestamp in groundtruth data
+        [~, groundtruthIndex] = min(abs(data.ground_truth.timestamp - gpsTimestamp));
+        groundtruth = [data.ground_truth.roll(groundtruthIndex);
+                       data.ground_truth.pitch(groundtruthIndex);
+                       data.ground_truth.heading(groundtruthIndex);
+                       data.ground_truth.x(groundtruthIndex);
+                       data.ground_truth.y(groundtruthIndex);
+                       data.ground_truth.z(groundtruthIndex)];
+        
         % In case gps_cg.altitude is NaN
-        if isnan(data.gps_cg.altitude(gpsIndex))
-            altitude = lastValidAltitude;
-        else
-            altitude = data.gps_cg.altitude(gpsIndex);
-            lastValidAltitude = altitude;
-        end
+%         if isnan(data.gps_cg.altitude(gpsIndex))
+%             altitude = lastValidAltitude;
+%         else
+%             altitude = data.gps_cg.altitude(gpsIndex);
+%             lastValidAltitude = altitude;
+%         end
         [x, y, z] = latlngalt2xyz(data.gps_cg.latitude(gpsIndex), ...
                                   data.gps_cg.longitude(gpsIndex), ...
-                                  altitude);
+                                  0);
         Y = [x;y;z];
         filter.update(Y);
         gpsIndex = gpsIndex + 1;
+        
+        % lie2cartesian(filter);
+
+        % TODO : need to confirm order
+        % gpsTimestamp, yaw, pitch, roll, x, y, z
+        filteredData(gpsIndex - 2, :) = [gpsTimestamp filter.XCart(1:6)' groundtruth'];
+        % filteredDataStatistics(gpsIndex - 2, :) = mahalanobis(filter, groundtruth);     
     end
     
     filter.prediction(angularRate, acceleration, dt);
-    filteredData(imuIndex - imuFirstIndex + 1,:) = filter.X(1:3,5)';
 end
 
-
+%% Output data
 if nargout >= 1
-    varargout{1} = sys;
-    varargout{2} = data;
+    varargout{1} = filteredData;
 end
+
+% if nargout >= 2
+%     varargout{2} = filteredDataStatistics;
+% end
+
 end
