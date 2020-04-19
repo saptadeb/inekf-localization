@@ -300,8 +300,8 @@ G_{11} & G_{12} & G_{13} \\
 \end{array} \right], \hspace{4.1cm} \\
 \text{where } \mathbf{I} = \mathbf{I}_{3 \times 3}, \hspace{5.8cm} \\
 G_{11} = \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \tilde{\boldsymbol \omega}_t^{\wedge} - \tilde{\boldsymbol \omega}_t^{\wedge} \left( {\boldsymbol \xi}_t^R \right)^{\wedge} = \left( -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^R \right)^{\wedge}, \\
-G_{12} = \left( \mathbf{I} + \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \right) \tilde{\mathbf{a}}_t + \mathbf{g} -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^v, \hspace{1.4cm} \\
-G_{13} = {\boldsymbol \xi}_t^v - \tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^p. \hspace{4.1cm}
+G_{12} = \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \tilde{\mathbf{a}}_t -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^v, \hspace{3.2cm} \\
+G_{13} = {\boldsymbol \xi}_t^v - \tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^p. \hspace{4.15cm}
 \end{multline}
 We can further write $g_{\mathbf{u}_t}^l ( \cdot )$ as
 \begin{multline} \label{Axi}
@@ -313,7 +313,7 @@ G_{11} & G_{12} & G_{13} \\
 \end{array} \right] \\
 = {\cal{L}}_{\mathfrak{g}} \left( \left[ \begin{array}{c}
 -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^R \\
-\left( \mathbf{I} + \left( {\boldsymbol \xi}_t^R \right)^{\wedge} \right) \tilde{\mathbf{a}}_t + \mathbf{g} -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^v \\
+- \tilde{\mathbf{a}}_t^{\wedge} {\boldsymbol \xi}_t^R -\tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^v \\
 {\boldsymbol \xi}_t^v - \tilde{\boldsymbol \omega}_t^{\wedge} {\boldsymbol \xi}_t^p
 \end{array} \right] \right) \\
 = {\cal{L}}_{\mathfrak{g}} \left( \left[ \begin{array}{ccc}
@@ -326,7 +326,7 @@ G_{11} & G_{12} & G_{13} \\
 {\boldsymbol \xi}_t^v \\
 {\boldsymbol \xi}_t^p
 \end{array} \right] 
-\right) + c.
+\right).
 \end{multline}
 With the above, we can express the prediction step of the
 LI-EKF. The state estimate, $\hat{\mathbf{X}}_t$, is propagated though the deterministic system dynamics, while the covariance matrix, $\mathbf{P}_t$, is computed using the Riccati equation, namely,
@@ -489,7 +489,7 @@ References are important to the reader; therefore, each citation must be complet
 \begin{thebibliography}{99}
 
 \bibitem{c1} Brian Hall. \textit{Lie groups, Lie algebras, and representations: an elementary introduction}, volume 222. Springer, 2015.
-\bibitem{c1}: Axel Barrau and Silvère Bonnabel. \textit{The invariant extended Kalman filter as a stable observer}. IEEE Transactions on Automatic Control, 62(4):1797-1812, 2017.
+\bibitem{c1} Axel Barrau and Silvère Bonnabel. \textit{The invariant extended Kalman filter as a stable observer}. IEEE Transactions on Automatic Control, 62(4):1797-1812, 2017.
 
 
 \end{thebibliography}
