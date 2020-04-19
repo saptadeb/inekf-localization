@@ -5,7 +5,13 @@
 
 2. Run the script "read_data_and_convert_to_mat.py" in the "utils" folder.
 
-## Running the example
-1. Open Matlab to the "src" folder. 
+## Running LIEKF example
+1. Open MATLAB to the "src" folder. 
  
-2. Run the scipt "plot_results.m".
+2. Run the script "LIEKF_example.m".
+
+## Running Madgwick's algorithm example
+1. Open MATLAB to the "src" folder.
+
+2. Run the script "madgwick_example.m"
+ 
