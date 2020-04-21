@@ -3,7 +3,7 @@
 % Author: Hao Zhou <zhh@umich.edu>
 % Date:   2020-04-15
 
-clear; clc
+clear, clc, close all
 
 % Beautiful colors
 blue      = [0, 0.4470, 0.7410];

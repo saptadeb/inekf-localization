@@ -78,7 +78,7 @@ for imuIndex = imuFirstIndex: length(data.imu.accel_x)-1
         lie2cartesian(filter);
         % gpsTimestamp, yaw, pitch, roll, x, y, z
         filteredData(gpsIndex - 2, :) = [gpsTimestamp filter.XCart(1:6)' groundtruth'];
-        filteredDataStatistics(gpsIndex - 2, :) = mahalanobis(filter, groundtruth);     
+        filteredDataStatistics(gpsIndex - 2, :) = mahalanobis(filter, groundtruth,1);     
     end
     
     filter.prediction(angularRate, acceleration, dt);
