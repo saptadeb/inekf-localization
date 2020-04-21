@@ -1,4 +1,4 @@
-clear; clc
+clear, clc, close all
 
 % Beautiful colors
 blue      = [0, 0.4470, 0.7410];
@@ -23,7 +23,7 @@ plot(xGpsCg, yGpsCg, 'color', green)
 plot(filteredData(:,11), filteredData(:,12), 'color', blue)
 axis equal
 title('\textbf{Robot location}', 'Interpreter', 'latex');
-legend({'LIEKF', 'Consumer grade GPS', 'Ground truth'}, 'Location','Best', 'Interpreter', 'latex')
+legend({'EKF', 'Consumer grade GPS', 'Ground truth'}, 'Location','Best', 'Interpreter', 'latex')
 xlabel('$x$ (m)', 'Interpreter', 'latex')
 ylabel('$y$ (m)', 'Interpreter', 'latex')
 
