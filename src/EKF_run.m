@@ -20,10 +20,9 @@ function varargout = EKF_run()
                     data.ground_truth.pitch(groundtruthFirstIndex) ...
                     data.ground_truth.heading(groundtruthFirstIndex)];
     % 'XYZ' (roll, pitch, yaw), body-fixed (intrinsic) axis rotation sequence.  
-    rotationInitial = eul2rotm(eulerInitial, 'XYZ');
+%     rotationInitial = eul2rotm(eulerInitial, 'XYZ');
     
-    init.X = [rotationInitial, zeros(3,1), [x;y;z];
-              zeros(2,3), eye(2)];
+    init.X = [eulerInitial'; zeros(3,1); [x;y;z]];
     init.P = eye(9);
 
     sys.H = [0*zeros(2,3), 0*zeros(2,3), [1 0 0;0 1 0]];
@@ -77,8 +76,8 @@ function varargout = EKF_run()
             gpsIndex = gpsIndex + 1;
             
             % gpsTimestamp, yaw, pitch, roll, x, y, z
-            filteredData(gpsIndex - 2, :) = [gpsTimestamp filter.XCart(1:6)' groundtruth'];
-            filteredDataStatistics(gpsIndex - 2, :) = mahalanobis(filter, groundtruth);     
+            filteredData(gpsIndex - 2, :) = [gpsTimestamp filter.X(1:6)' groundtruth'];
+%             filteredDataStatistics(gpsIndex - 2, :) = mahalanobis(filter, groundtruth);     
         end
         
         filter.prediction(angularRate, acceleration, dt);

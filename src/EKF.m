@@ -1,4 +1,4 @@
-classdef ekf < handle
+classdef EKF < handle
     
     properties
         H;              % measurement model
@@ -18,7 +18,7 @@ classdef ekf < handle
     end
     
     methods
-        function obj = ekf(system, init)
+        function obj = EKF(system, init)
             % ekf Construct an instance of this class
             %
             %   Inputs:
@@ -28,24 +28,24 @@ classdef ekf < handle
             obj.H = system.H;
             obj.Q = system.Q;
             obj.R = system.R;
-            obj.x = init.x;
+            obj.X = init.X;
             obj.P = init.P;
             obj.g = [0; 0; 9.81];
         end
         
-        function [O, vel, pos] = separate_state(~, X)
+        function [Rot, vel, pos] = separate_state(~, X)
             % Separate state vector into components
             O = X(1:3);               % Euler Angles
-            Rot = eul2rotm(O, 'XYZ'); % Rot
+            Rot = eul2rotm(O', 'XYZ'); % Rot
             vel = X(4:6);             % Base Velocity
             pos = X(7:9);             % Base Position
         end
         
-        function X = construct_state(~, Rot, vel, pos)
-            % Construct matrix from separate states
-            O = rotm2eul(Rot, 'XYZ')';
-            X = [O; vel; pos];
-        end
+%         function X = obj.construct_state(Rot, vel, pos)
+%             % Construct matrix from separate states
+%             O = rotm2eul(Rot, 'XYZ')';
+%             X = [O; vel; pos];
+%         end
 
 
         function prediction(obj, w, a, dt)
@@ -54,13 +54,13 @@ classdef ekf < handle
             % dt    - sample time
 
             [Rot, vel, pos] = obj.separate_state(obj.X);
-            q1 = rotm2quat(Rot);
-
+            q2 = rotm2quat(Rot);
+            q1 = quaternion(q2);
             % propagate the state               
             q = obj.Quaternion; % short name local variable for readability
 
-            aW = q1 * a * q1' - obj.g;      
-
+            aW = rotatepoint(q1, a')' - obj.g;     
+            
             % Normalize accelerometer measurement
             a = a / norm(a);
             % Gradient decent algorithm corrective step
@@ -82,10 +82,14 @@ classdef ekf < handle
             % Now convert quaternion back to rotation matrix
             RPred = quatern2rotMat(quaternConj(obj.Quaternion));
 
-            [pPred; vPred] = [eye(3), dt*eye(3) ; zeros(3,3), eye(3)] * [pos; vel] +...
-                [((dt^2)/(2))*eye(3) ; dt*eye(3)] * aW;
+%             [pPred; vPred] = [eye(3), dt*eye(3) ; zeros(3,3), eye(3)] * [pos; vel] +...
+%                 [((dt^2)/(2))*eye(3) ; dt*eye(3)] * aW;
+            pPred = eye(3)*pos + dt*eye(3)*vel + ((dt^2)/(2))*eye(3)*aW;
+            vPred = eye(3)*vel + dt*eye(3)*aW;
 
-            obj.XPred = construct_state(RPred, vPred, pPred);
+            OPred = rotm2eul(RPred, 'XYZ')';
+            obj.XPred = [OPred;vPred;pPred];
+%             obj.XPred = obj.construct_state(RPred, vPred, pPred);
             
             A = [0*eye(3)  0*eye(3) 0*eye(3);...
                  0*eye(3)  1*eye(3) 0*eye(3);...
@@ -137,7 +141,7 @@ classdef ekf < handle
             %       z          - measurement
 
             % compute innovation statistics
-            obj.v = z - obj.H * obj.X;
+            obj.v = z - obj.H * obj.XPred;
             obj.S = obj.H * obj.PPred * obj.H' + obj.R;
             
             % filter gain
