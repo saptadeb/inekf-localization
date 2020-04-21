@@ -15,3 +15,7 @@
 
 2. Run the script "madgwick_example.m"
  
+## Running EKF example
+1. Open MATLAB to the "src" folder. 
+ 
+2. Run the script "EKF_example.m". 
