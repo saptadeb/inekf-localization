@@ -103,7 +103,7 @@ classdef PF < handle
             for i = 1:obj.n
                  % compute innovation statistics
                  v = z - obj.h(obj.p.x(:,i));
-                 w(i) = mvnpdf(v, [0;0;0], obj.R);
+                 w(i) = mvnpdf(v, [0;0], obj.R);
             end
             % update and normalize weights
             obj.p.w = obj.p.w .* w; % since we used motion model to sample
@@ -123,8 +123,8 @@ classdef PF < handle
                 obj.XCart(5) = sum(obj.p.x(8,:)' .* obj.p.w) / wtot;
                 obj.XCart(6) = sum(obj.p.x(9,:)' .* obj.p.w) / wtot;
             else
-%                 warning('Total weight is zero or nan!')
-%                 disp(wtot)
+                warning('Total weight is zero or nan!')
+                disp(wtot)
                 obj.XCart = nan(6,1);
             end
 

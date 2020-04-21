@@ -20,20 +20,21 @@ data = load('data_2013-01-10.mat');
 % 9         | psi_k     | yaw
 % ------------------------------------
 
+
 % measurement model
-sys.h = @(x) [0*eye(3), 0*eye(3), eye(3)] * x;
+sys.h = @(x) [0*zeros(2,3), 0*zeros(2,3), [1 0 0;0 1 0]] * x;
 
 % process noise covariance
 % sys.Q = 1e-1 * eye(9);
 sys.Q = blkdiag(1e-2*eye(3), 1e-1*eye(3), 1e-1*eye(3));
 
 % measurement noise covariance
-sys.R = 1e2 * eye(3);
+sys.R = 1e1 * eye(2);
 
 % initialization for filter
-init.n = 40;                           % number of particles
-init.Sigma = 1e3 * eye(9);              % initial sigma
-
+init.n = 20;                           % number of particles
+% init.Sigma = 1e3 * eye(9);              % initial sigma
+init.Sigma = blkdiag(1e-1*eye(3), 1e-1*eye(3), 1*eye(3));
 
 %% Initialization
 % Use first GPS measurement as initial position 
@@ -57,6 +58,7 @@ filter = PF(sys, init);
 
 %% Kalman filter
 gpsIndex = 2;
+lastValidAltitude = data.gps_cg.altitude(1);
 % lastValidAltitude = data.gps_cg.altitude(1);
 filteredData = zeros(length(data.gps_cg.timestamp)-1, 13);
 filteredDataStatistics = zeros(length(data.gps_cg.timestamp)-1, 11);
@@ -93,10 +95,22 @@ for imuIndex = imuFirstIndex: length(data.imu.accel_x)-1
 %             altitude = data.gps_cg.altitude(gpsIndex);
 %             lastValidAltitude = altitude;
 %         end
+%         [x, y, z] = latlngalt2xyz(data.gps_cg.latitude(gpsIndex), ...
+%                                   data.gps_cg.longitude(gpsIndex), ...
+%                                   0);
+
+        % In case gps_cg.altitude is NaN
+        if isnan(data.gps_cg.altitude(gpsIndex))
+            altitude = lastValidAltitude;
+        else
+            altitude = data.gps_cg.altitude(gpsIndex);
+            lastValidAltitude = altitude;
+        end
         [x, y, z] = latlngalt2xyz(data.gps_cg.latitude(gpsIndex), ...
                                   data.gps_cg.longitude(gpsIndex), ...
-                                  0);
-        Y = [x;y;z];
+                                  altitude);
+                              
+        Y = [x;y];
         filter.update(Y);
         gpsIndex = gpsIndex + 1;
         
@@ -109,6 +123,7 @@ for imuIndex = imuFirstIndex: length(data.imu.accel_x)-1
     end
     
     filter.prediction(angularRate, acceleration, dt);
+    
 end
 
 %% Output data
