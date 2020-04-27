@@ -30,8 +30,8 @@ Add plots and stuff...... make gifs from the vids
 Check the [proposal]() and the [final report]() for more details on implementation. //todo add the links
 
 ## Team Members
-- [Saptadeep Debnath]() (saptadeb@umich.edu)
-- [Anthony Liang]() (aliangdw@umich.edu)
-- [Gaurav Manda]() (gmanda@umich.edu)
-- [Sunbochen Tang]() (tangsun@umich.edu)
-- [Hao Zhou]() (zhh@umich.edu)
+- [Saptadeep Debnath](https://www.linkedin.com/in/saptadeep-deb/) (saptadeb@umich.edu)
+- [Anthony Liang](https://www.linkedin.com/in/anthony-liang/) (aliangdw@umich.edu)
+- [Gaurav Manda](https://www.linkedin.com/in/gaurav-manda-8a7844103/) (gmanda@umich.edu)
+- [Sunbochen Tang](https://www.linkedin.com/in/sunbochen-tang-4773b3152/) (tangsun@umich.edu)
+- [Hao Zhou](https://www.linkedin.com/in/hao-zhou-96a85b180/) (zhh@umich.edu)
