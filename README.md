@@ -1,21 +1,37 @@
-# EECS568Project
+# Invariant  Extended  Kalman  Filtering  for  Robot  Localization using  IMU  and  GPS
 
-## Downloading the data
-1. Go to http://robots.engin.umich.edu/nclt/, download sensor data and groundtruth.csv from a date, save all csv files in one folder named by the date, and store the folder in the "data" folder.
+NA 568 Final Project Team 16 - Saptadeep Debnath, Anthony Liang, Gaurav Manda, Sunbochen Tang, Hao Zhou
 
-2. Run the script "read_data_and_convert_to_mat.py" in the "utils" folder.
+This project aims to implement an In-EKF based localization system and compare it against a particle filter based localization system and a GPS-alone dataset. We will use the [UM North Campus Long-Term Vision and LIDAR dataset](http://robots.engin.umich.edu/nclt/), an autonomy dataset for robotics research collected on the University of Michigan North Campus. It consists of data from several sensors including planar lidar, omnidirectional camera, IMU, and GPS.
 
-## Running LIEKF example
-1. Open MATLAB to the "src" folder. 
- 
-2. Run the script "LIEKF_example.m".
+## Goals
+- Research done by [A. Barrau](https://ieeexplore.ieee.org/document/7402522), [M. Barczyk](https://ieeexplore.ieee.org/document/7081772?section=abstract) and [R. Hartley](https://arxiv.org/abs/1805.10410) were used as the baseline for the results anticipated from the project.
+- Develop an In-EKF filter model for pose estimation on the IMU sensor data from The UM North Campus Long-Term Vision and LIDAR Dataset and using GPS sensor data to implement a correction model.
+- Develop an EKF based pose estimation model using IMU and GPS (for correction) data.
+- Compare the proposed In-EKF based localization system with the EKF based localization, only GPS data and the ground truth poses provided by the dataset.
 
-## Running Madgwick's algorithm example
-1. Open MATLAB to the "src" folder.
+## Dependencies
 
-2. Run the script "madgwick_example.m"
- 
-## Running EKF example
-1. Open MATLAB to the "src" folder. 
- 
-2. Run the script "EKF_example.m". 
+1. Download sensor data and groundtruth.csv from the [NCLT dataset](http://robots.engin.umich.edu/nclt/) for a date, save all csv files in one folder named by the date, and store the folder in `/data`.
+
+2. Run the script `/utils/read_data_and_convert_to_mat.py` 
+
+## Running the code
+1. `/src/LIEKF_example.m` runs the Left-Invarriant EKF on the NCLT, and compares with ground truth.
+2. `/src/madgwick_example.m` runs the Madgwick algorithm.
+3. `/src/EKF_example.m` runs the 
+
+`/src/LIEKF_example.m` and `/src/EKF_example.m` produces three plots; planned robot trajectory compared with the ground truth, comparison of the computed euler angles with the ground truth and Mahalanobis distances for the predicted robot states.
+
+## Results
+
+Add plots and stuff...... make gifs from the vids 
+
+Check the [proposal]() and the [final report]() for more details on implementation. //todo add the links
+
+## Team Members
+- [Saptadeep Debnath]() (saptadeb@umich.edu)
+- [Anthony Liang]() (aliangdw@umich.edu)
+- [Gaurav Manda]() (gmanda@umich.edu)
+- [Sunbochen Tang]() (tangsun@umich.edu)
+- [Hao Zhou]() (zhh@umich.edu)
