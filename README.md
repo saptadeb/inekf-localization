@@ -27,7 +27,7 @@ This project aims to implement an In-EKF based localization system and compare i
 
 Add plots and stuff...... make gifs from the vids 
 
-Check the [proposal]() and the [final report]() for more details on implementation. //todo add the links
+Check the [proposal](https://github.com/team16-mobrob-w20/inekf-localization/blob/master/EECS568_Team16_proposal.pdf) and the [final report]() for more details on implementation. //todo add the links
 
 ## Team Members
 - [Saptadeep Debnath](https://www.linkedin.com/in/saptadeep-deb/) (saptadeb@umich.edu)
