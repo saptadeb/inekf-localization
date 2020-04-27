@@ -41,13 +41,6 @@ classdef EKF < handle
             pos = X(7:9);             % Base Position
         end
         
-%         function X = obj.construct_state(Rot, vel, pos)
-%             % Construct matrix from separate states
-%             O = rotm2eul(Rot, 'XYZ')';
-%             X = [O; vel; pos];
-%         end
-
-
         function prediction(obj, w, a, dt)
             % w     - angular rate
             % a     - acceleration in Body Frame
@@ -58,7 +51,6 @@ classdef EKF < handle
             q1 = quaternion(q2);
             % propagate the state               
             q = obj.Quaternion; % short name local variable for readability
-
             aW = rotatepoint(q1, a')' - obj.g;     
             
             % Normalize accelerometer measurement
@@ -75,21 +67,16 @@ classdef EKF < handle
             % Compute rate of change of quaternion
             qDot = 0.5 * quaternProd(q, [0 w(1) w(2) w(3)]) - obj.Beta * step';
             % Integrate to yield quaternion
-            % q = q + qDot * obj.SamplePeriod;
             q = q + qDot * dt;
             obj.Quaternion = q / norm(q); % normalize quaternion
             
             % Now convert quaternion back to rotation matrix
             RPred = quatern2rotMat(quaternConj(obj.Quaternion));
-
-%             [pPred; vPred] = [eye(3), dt*eye(3) ; zeros(3,3), eye(3)] * [pos; vel] +...
-%                 [((dt^2)/(2))*eye(3) ; dt*eye(3)] * aW;
             pPred = eye(3)*pos + dt*eye(3)*vel + ((dt^2)/(2))*eye(3)*aW;
             vPred = eye(3)*vel + dt*eye(3)*aW;
 
             OPred = rotm2eul(RPred, 'XYZ')';
             obj.XPred = [OPred;vPred;pPred];
-%             obj.XPred = obj.construct_state(RPred, vPred, pPred);
             
             A = [0*eye(3)  0*eye(3) 0*eye(3);...
                  0*eye(3)  1*eye(3) 0*eye(3);...
@@ -97,42 +84,6 @@ classdef EKF < handle
             obj.PPred = A * obj.P * A' + obj.Q;
 
         end
-%{
-            %Evaluate G with mean and input
-            G = obj.Gfun(obj.x,u);
-
-            [Rot, vel, pos] = obj.separate_state(obj.x);
-                
-            % propagate the state               
-            q = obj.Quaternion; % short name local variable for readability
-            % Normalize accelerometer measurement
-            a = a / norm(a);
-            % Gradient decent algorithm corrective step
-            F = [2*(q(2)*q(4) - q(1)*q(3)) - a(1)
-                    2*(q(1)*q(2) + q(3)*q(4)) - a(2)
-                    2*(0.5 - q(2)^2 - q(3)^2) - a(3)];
-            J = [-2*q(3),  2*q(4), -2*q(1),	2*q(2)
-                    2*q(2),  2*q(1),  2*q(4),	2*q(3)
-                        0, -4*q(2),  -4*q(3),	0];
-            step = (J'*F);
-            step = step / norm(step); % normalize step magnitude
-            % Compute rate of change of quaternion
-            qDot = 0.5 * quaternProd(q, [0 w(1) w(2) w(3)]) - obj.Beta * step';
-            % Integrate to yield quaternion
-            % q = q + qDot * obj.SamplePeriod;
-            q = q + qDot * dt;
-            obj.Quaternion = q / norm(q); % normalize quaternion
-            
-            % Now convert quaternion back to rotation matrix
-            RPred = quatern2rotMat(quaternConj(obj.Quaternion));
-            vPred = vel + (Rot * a + obj.g) * dt;
-            pPred = pos + vel * dt + 0.5 * (Rot * a + obj.g) * dt^2;
-
-            obj.x = obj.construct_state(RPred, vPred, pPred);
-            
-            obj.Sigma_pred = G*obj.Sigma*G'+V*obj.M(u)*V';
-%}
-
         
         function update(obj, z)
             % EKF update step
@@ -150,9 +101,8 @@ classdef EKF < handle
             % correct the predicted state statistics
             obj.X = obj.XPred + obj.K * obj.v;
             I = eye(length(obj.X));
-            obj.P = ...
-                (I - obj.K * obj.H) * obj.PPred * (I - obj.K * obj.H)' ...
-                    + obj.K * obj.R * obj.K'; % Joseph update form
+            obj.P = (I - obj.K * obj.H) * obj.PPred * (I - obj.K * obj.H)' ...
+                    + obj.K * obj.R * obj.K';   % Joseph update form
         end
     end
 end

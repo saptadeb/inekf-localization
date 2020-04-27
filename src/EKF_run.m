@@ -16,9 +16,8 @@ function varargout = EKF_run()
     eulerInitial = [data.ground_truth.roll(groundtruthFirstIndex) ...
                     data.ground_truth.pitch(groundtruthFirstIndex) ...
                     data.ground_truth.heading(groundtruthFirstIndex)];
-    % 'XYZ' (roll, pitch, yaw), body-fixed (intrinsic) axis rotation sequence.  
-%     rotationInitial = eul2rotm(eulerInitial, 'XYZ');
-    
+                
+    % 'XYZ' (roll, pitch, yaw), body-fixed (intrinsic) axis rotation sequence.     
     init.X = [eulerInitial'; zeros(3,1); [x;y;z]];
     init.P = eye(9);
 
@@ -29,7 +28,7 @@ function varargout = EKF_run()
 
     filter = EKF(sys, init);
     
-    %% Kalman filter
+    %% Extended Kalman filter
     gpsIndex = 2;
     % lastValidAltitude = data.gps_cg.altitude(1);
     filteredData = zeros(length(data.gps_cg.timestamp)-1, 13);
@@ -59,7 +58,7 @@ function varargout = EKF_run()
                            data.ground_truth.y(groundtruthIndex);
                            data.ground_truth.z(groundtruthIndex)];
             
-            % In case gps_cg.altitude is NaN
+            % If in case gps_cg.altitude is NaN
     %         if isnan(data.gps_cg.altitude(gpsIndex))
     %             altitude = lastValidAltitude;
     %         else
