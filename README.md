@@ -19,7 +19,7 @@ This project aims to implement an In-EKF based localization system and compare i
 ## Running the code
 1. `/src/LIEKF_example.m` runs the Left-Invarriant EKF on the NCLT, and compares with ground truth.
 2. `/src/madgwick_example.m` runs the Madgwick algorithm.
-3. `/src/EKF_example.m` runs the 
+3. `/src/EKF_example.m` runs the Extended Kalman Filter on the NCLT, and compares with ground truth.
 
 `/src/LIEKF_example.m` and `/src/EKF_example.m` produces three plots; planned robot trajectory compared with the ground truth, comparison of the computed euler angles with the ground truth and Mahalanobis distances for the predicted robot states.
 
