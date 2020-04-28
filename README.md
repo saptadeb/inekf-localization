@@ -2,7 +2,7 @@
 
 NA 568 Final Project Team 16 - Saptadeep Debnath, Anthony Liang, Gaurav Manda, Sunbochen Tang, Hao Zhou
 
-This project aims to implement an In-EKF based localization system and compare it against a particle filter based localization system and a GPS-alone dataset. We will use the [UM North Campus Long-Term Vision and LIDAR dataset](http://robots.engin.umich.edu/nclt/), an autonomy dataset for robotics research collected on the University of Michigan North Campus. It consists of data from several sensors including planar lidar, omnidirectional camera, IMU, and GPS.
+This project aims to implement an In-EKF based localization system and compare it against an Extended Kalman Filter based localization system and a GPS-alone dataset. We will use the [UM North Campus Long-Term Vision and LIDAR dataset](http://robots.engin.umich.edu/nclt/), an autonomy dataset for robotics research collected on the University of Michigan North Campus. It consists of data from several sensors including planar lidar, omnidirectional camera, IMU, and GPS.
 
 ## Goals
 - Research done by [A. Barrau et al.](https://ieeexplore.ieee.org/document/7402522), [M. Barczyk et al.](https://ieeexplore.ieee.org/document/7081772?section=abstract) and [R. Hartley et al.](https://arxiv.org/abs/1805.10410) were used as the baseline for the results anticipated from the project.
