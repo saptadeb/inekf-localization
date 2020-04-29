@@ -1,6 +1,6 @@
 # Invariant  Extended  Kalman  Filtering  for  Robot  Localization using  IMU  and  GPS
 
-NA 568 Final Project Team 16 - Saptadeep Debnath, Anthony Liang, Gaurav Manda, Sunbochen Tang, Hao Zhou
+[NA 568](http://robots.engin.umich.edu/mobilerobotics/) Final Project Team 16 - Saptadeep Debnath, Anthony Liang, Gaurav Manda, Sunbochen Tang, Hao Zhou
 
 This project aims to implement an In-EKF based localization system and compare it against an Extended Kalman Filter based localization system and a GPS-alone dataset. We will use the [UM North Campus Long-Term Vision and LIDAR dataset](http://robots.engin.umich.edu/nclt/), an autonomy dataset for robotics research collected on the University of Michigan North Campus. It consists of data from several sensors including planar lidar, omnidirectional camera, IMU, and GPS.
 
