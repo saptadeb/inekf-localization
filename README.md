@@ -25,7 +25,13 @@ This project aims to implement an In-EKF based localization system and compare i
 
 ## Results
 
-Add plots and stuff...... make gifs from the vids 
+Plot generated for EKF
+
+![alt-text](/report/ekf.gif)
+
+Plot generated for LI-EKF
+
+![alt-text](/report/liekf.gif)
 
 Check the [proposal](https://github.com/team16-mobrob-w20/inekf-localization/blob/master/EECS568_Team16_proposal.pdf) and the [final report]() for more details on implementation. //todo add the links
 
