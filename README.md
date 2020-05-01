@@ -35,7 +35,7 @@ Plot generated for LI-EKF
 
 ![alt-text](/report/liekf.gif)
 
-Check the [proposal](https://github.com/team16-mobrob-w20/inekf-localization/blob/master/EECS568_Team16_proposal.pdf) and the [final report]() for more details on implementation. //todo add the links
+Check the [proposal](https://github.com/team16-mobrob-w20/inekf-localization/blob/master/EECS568_Team16_proposal.pdf) and the [final report](https://github.com/team16-mobrob-w20/inekf-localization/blob/master/EECS568_Team16_Report.pdf) for more details on implementation. 
 
 ## Team Members
 - [Saptadeep Debnath](https://www.linkedin.com/in/saptadeep-deb/) (saptadeb@umich.edu)
